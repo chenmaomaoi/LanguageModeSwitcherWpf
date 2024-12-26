@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
+using LanguageModeSwitcherWpf;
 using Windows.Win32.Foundation;
 using static Windows.Win32.PInvoke;
 
@@ -15,12 +16,14 @@ public class Win32Window
     private string? _processName;
     private uint _pid;
 
-    internal Win32Window(nint handle)
+    internal Win32Window(HWND handle)
     {
-        _hWnd = (HWND)handle;
+        _hWnd = handle;
     }
 
-    public nint Handle => _hWnd;
+    internal HWND Handle => _hWnd;
+
+    internal HWND IMEHandle => Win32Helper.GetIMEHWND(_hWnd);
 
     public string ClassName => _className ??= CallWin32ToGetPWSTR(512, (p, l) => GetClassName(_hWnd, p, l));
 

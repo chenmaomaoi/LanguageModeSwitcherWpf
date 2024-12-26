@@ -8,8 +8,8 @@ namespace LanguageModeSwitcherWpf;
 /// </summary>
 public partial class App : Application
 {
-    private TaskBarNotifyIcon? _notifyIcon;
-    private Monitor? _switcher;
+    private TaskBarNotifyIcon _notifyIcon;
+    private Monitor _monitor;
 
     public App()
     {
@@ -34,8 +34,13 @@ public partial class App : Application
     private void Application_Startup(object sender, StartupEventArgs e)
     {
         _notifyIcon = new TaskBarNotifyIcon();
+        _monitor = new Monitor();
+    }
 
-        using Monitor _montior = new Monitor();
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _monitor.Dispose();
+        base.OnExit(e);
     }
 
     private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

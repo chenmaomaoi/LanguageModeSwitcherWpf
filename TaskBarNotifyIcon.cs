@@ -30,7 +30,7 @@ public class TaskBarNotifyIcon
         var menuContext = new ContextMenuStrip();
         menuContext.Items.Add("设置", null, (sender, e) =>
         {
-            _mainWindow.Visibility = Visibility.Visible;
+            _mainWindow.Show();
             _mainWindow.Activate();
         });
         menuContext.Items.Add("退出", null, notifyIcon_exit);
@@ -45,12 +45,12 @@ public class TaskBarNotifyIcon
         {
             if (_mainWindow.Visibility != Visibility.Visible)
             {
-                _mainWindow.Visibility = Visibility.Visible;
+                _mainWindow.Show();
                 _mainWindow.Activate();
             }
             else
             {
-                _mainWindow.Visibility = Visibility.Hidden;
+                _mainWindow.Hide();
             }
         }
     }

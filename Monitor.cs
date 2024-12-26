@@ -1,7 +1,6 @@
 ﻿using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Accessibility;
-using Walterlv.ForegroundWindowMonitor;
 using System.Diagnostics;
 using Microsoft.VisualBasic;
 using System.Timers;
@@ -11,9 +10,13 @@ using System.Windows;
 using System.Threading;
 using System.Runtime.InteropServices;
 using Timer = System.Timers.Timer;
+using Walterlv.ForegroundWindowMonitor;
 
 namespace LanguageModeSwitcherWpf;
 
+/// <summary>
+/// 监控器
+/// </summary>
 public class Monitor : IDisposable
 {
     private Timer _refreshTimer;
@@ -21,15 +24,16 @@ public class Monitor : IDisposable
     //应用程序名，是否为中文模式
     private Dictionary<string, bool> _dic = new Dictionary<string, bool>();
 
-    private string? _timeTickerLastProgressName;
-    private string? _processChangedLastProgressName;
+
     private GCHandle _callBackHandle;
     private HWINEVENTHOOK _hWINEVENTHOOK = new();
 
     public Monitor()
     {
-        _refreshTimer = new Timer();
-        _refreshTimer.Interval = Constant.RefreshDelay;
+        _refreshTimer = new Timer
+        {
+            Interval = Constant.RefreshDelay
+        };
         _refreshTimer.Elapsed += RefreshTimerTick;
         _refreshTimer.Start();
 
@@ -44,6 +48,8 @@ public class Monitor : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    private string? _lastProgressName_TimeTicker;
+    private bool? _lastIsChineseMode_TimeTicker;
     /// <summary>
     /// 定时获取输入法状态
     /// </summary>
@@ -52,24 +58,32 @@ public class Monitor : IDisposable
     private void RefreshTimerTick(object? sender, ElapsedEventArgs e)
     {
         //跟上次获取到的程序名称对比，不一样什么都不做
-        var progressName = GetForegroundWindowProgressName();
-        if (_timeTickerLastProgressName != progressName)
+        Win32Window window = Win32Helper.GetForegroundWindowInfo();
+        if (_lastProgressName_TimeTicker != window.ProcessName)
         {
-            _timeTickerLastProgressName = progressName;
+            _lastProgressName_TimeTicker = window.ProcessName;
             return;
         }
 
-        var isChineseMode = CheckIsChineseMode(out _);
-        if (_dic.TryGetValue(progressName, out bool storedIsChineseMode))
+        var isChineseMode = Win32Helper.GetIsChineseInputMode(window.IMEHandle);
+
+        //输入模式没变，直接返回
+        if (_lastIsChineseMode_TimeTicker == isChineseMode)
         {
-            _dic[progressName] = isChineseMode;
+            return;
+        }
+
+        //输入模式变了，存起来
+        if (_dic.TryGetValue(window.ProcessName, out bool storedIsChineseMode))
+        {
+            _dic[window.ProcessName] = isChineseMode;
         }
         else
         {
-            _dic.Add(progressName, isChineseMode);
+            _dic.Add(window.ProcessName, isChineseMode);
         }
 
-        _timeTickerLastProgressName = progressName;
+        _lastProgressName_TimeTicker = window.ProcessName;
     }
 
     #region 监听应用程序切换
@@ -111,6 +125,7 @@ public class Monitor : IDisposable
         }
     }
 
+    private string? _lastProgressName_ProcessChanged;
     /// <summary>
     /// 当前台窗口变化时
     /// </summary>
@@ -129,14 +144,14 @@ public class Monitor : IDisposable
                                   uint idEventThread,
                                   uint dwmsEventTime)
     {
-        string? progressName1, progressName2;
+        Win32Window? window1, window2;
 
         _refreshTimer.Stop();
         try
         {
-            progressName1 = GetForegroundWindowProgressName();
+            window1 = Win32Helper.GetForegroundWindowInfo();
             Thread.Sleep(200);
-            progressName2 = GetForegroundWindowProgressName();
+            window2 = Win32Helper.GetForegroundWindowInfo();
         }
         catch
         {
@@ -147,105 +162,28 @@ public class Monitor : IDisposable
             _refreshTimer.Start();
         }
 
-        if (progressName1 != progressName2 || progressName2 == _processChangedLastProgressName)
+        if (window1.ProcessName != window2.ProcessName || window2.ProcessName == _lastProgressName_ProcessChanged)
         {
             return;
         }
+        bool currentIsChinese = Win32Helper.GetIsChineseInputMode(window2.IMEHandle);
 
-        var currentIsChinese = CheckIsChineseMode(out HWND imeHWND);
-
-        if (_dic.TryGetValue(progressName2, out bool storedIsChinese))
+        if (_dic.TryGetValue(window2.ProcessName, out bool storedIsChinese))
         {
             if (storedIsChinese)
             {
-                PInvoke.SendMessage(imeHWND, PInvoke.WM_IME_CONTROL, PInvoke.IMC_SETCONVERSIONMODE, IME_CMODE_CHINESE);
+                Win32Helper.SwitchToChineseMode(window2.IMEHandle);
             }
             else
             {
-                PInvoke.SendMessage(imeHWND, PInvoke.WM_IME_CONTROL, PInvoke.IMC_SETCONVERSIONMODE, IME_CMODE_ALPHANUMERIC);
+                Win32Helper.SwitchToAlphaNumericMode(window2.IMEHandle);
             }
         }
-        _processChangedLastProgressName = progressName2;
+        _lastProgressName_ProcessChanged = window2.ProcessName;
 
 #if DEBUG
-        Debug.WriteLine($@"{DateAndTime.Now:HH:mm:ss.fff}-{progressName2}-{currentIsChinese}=>{storedIsChinese}");
+        Debug.WriteLine($@"{DateAndTime.Now:HH:mm:ss.fff}-{window2.ProcessName}-{currentIsChinese}=>{storedIsChinese}");
 #endif
     }
-    #endregion
-
-    /// <summary>
-    /// 获取前台窗口进程名
-    /// </summary>
-    /// <returns></returns>
-    private string GetForegroundWindowProgressName()
-    {
-        var current = PInvoke.GetForegroundWindow();
-        var w = new Win32Window(current);
-        return w.ProcessName;
-    }
-
-    /// <summary>
-    /// 当前输入是否为中文模式
-    /// </summary>
-    /// <param name="hWND"></param>
-    /// <returns></returns>
-    private bool CheckIsChineseMode(out HWND hWND)
-    {
-        return (GetImeConversionMode(out hWND) & IME_CMODE_NATIVE) != 0;
-    }
-
-    // https://github.com/ZGGSONG/LangIndicator
-
-    /// <summary>
-    /// 获取当前输入法的转换模式
-    /// </summary>
-    private int GetImeConversionMode(out HWND hWND)
-    {
-        hWND = HWND.Null;
-        var foregroundWindow = PInvoke.GetForegroundWindow();
-        if (foregroundWindow == IntPtr.Zero)
-            return 0;
-
-        hWND = PInvoke.ImmGetDefaultIMEWnd(foregroundWindow);
-        if (hWND == IntPtr.Zero)
-            return 0;
-
-        var result = PInvoke.SendMessage(hWND, PInvoke.WM_IME_CONTROL, IMC_GETCONVERSIONMODE, IntPtr.Zero);
-        return result.Value.ToInt32();
-    }
-
-    /// <summary>
-    /// 获取大写锁定键状态
-    /// </summary>
-    /// <returns></returns>
-    private int GetCapsLockState()
-    {
-        return PInvoke.GetKeyState(VK_CAPITAL) & 0x0001;
-    }
-
-    /// <summary>
-    /// 大写锁定键
-    /// </summary>
-    private const int VK_CAPITAL = 0x14;
-
-    /// <summary>
-    /// 输入法管理器命令
-    /// </summary>
-    private const int IMC_GETCONVERSIONMODE = 0x001;
-
-    #region IGP_CONVERSION
-    // https://www.cnblogs.com/zyl910/archive/2006/06/04/2186644.html
-    private const int IME_CMODE_ALPHANUMERIC = 0x0;     // 英文字母
-    private const int IME_CMODE_CHINESE = 0x1;          // 中文输入
-    private const int IME_CMODE_NATIVE = 0x1;           // 等同于 CHINESE
-    private const int IME_CMODE_FULLSHAPE = 0x8;        // 全角
-    private const int IME_CMODE_ROMAN = 0x10;           // 罗马字
-    private const int IME_CMODE_CHARCODE = 0x20;        // 字符码
-    private const int IME_CMODE_HANJACONVERT = 0x40;    // 汉字转换
-    private const int IME_CMODE_SOFTKBD = 0x80;         // 软键盘
-    private const int IME_CMODE_NOCONVERSION = 0x100;   // 无转换
-    private const int IME_CMODE_EUDC = 0x200;           // 用户自定义字符
-    private const int IME_CMODE_SYMBOL = 0x400;         // 符号转换
-    private const int IME_CMODE_FIXED = 0x800;          // 固定转换
     #endregion
 }
