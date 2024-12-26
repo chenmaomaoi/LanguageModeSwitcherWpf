@@ -35,7 +35,7 @@ public partial class App : Application
     {
         _notifyIcon = new TaskBarNotifyIcon();
 
-        _switcher = new Monitor();
+        using Monitor _montior = new Monitor();
     }
 
     private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

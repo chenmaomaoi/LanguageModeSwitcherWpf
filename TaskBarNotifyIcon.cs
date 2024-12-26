@@ -10,10 +10,12 @@ public class TaskBarNotifyIcon
     private NotifyIcon _notifyIcon;
 
     //设置窗口
-    private Window? _mainWindow;
+    private Window _mainWindow;
 
     public TaskBarNotifyIcon()
     {
+        _mainWindow = new MainWindow();
+
         //设置托盘的各个属性
         _notifyIcon = new NotifyIcon
         {
@@ -23,31 +25,32 @@ public class TaskBarNotifyIcon
         };
 
         //绑定鼠标点击事件
-        _notifyIcon.MouseClick += new MouseEventHandler(notifyIcon_MouseClick);
+        _notifyIcon.MouseClick += new MouseEventHandler(_notifyIcon_MouseClick);
 
-        //退出菜单
-        ContextMenuStrip contextMenu = new();
-        contextMenu.Items.Add("退出", null, notifyIcon_exit);
+        var menuContext = new ContextMenuStrip();
+        menuContext.Items.Add("设置", null, (sender, e) =>
+        {
+            _mainWindow.Visibility = Visibility.Visible;
+            _mainWindow.Activate();
+        });
+        menuContext.Items.Add("退出", null, notifyIcon_exit);
 
-        //托盘图标右键菜单
-        _notifyIcon.ContextMenuStrip = contextMenu;
+        _notifyIcon.ContextMenuStrip = menuContext;
     }
 
-    private void notifyIcon_MouseClick(object? sender, MouseEventArgs e)
+    private void _notifyIcon_MouseClick(object? sender, MouseEventArgs e)
     {
         //显示设置窗口
         if (e.Button == MouseButtons.Left)
         {
-            if (_mainWindow is null)
+            if (_mainWindow.Visibility != Visibility.Visible)
             {
-                _mainWindow = new MainWindow();
-                _mainWindow.Show();
+                _mainWindow.Visibility = Visibility.Visible;
+                _mainWindow.Activate();
             }
             else
             {
-                _mainWindow.Close();
-                _mainWindow = null;
-                GC.Collect();
+                _mainWindow.Visibility = Visibility.Hidden;
             }
         }
     }
@@ -55,7 +58,7 @@ public class TaskBarNotifyIcon
     private void notifyIcon_exit(object? sender, EventArgs e)
     {
         _notifyIcon.Dispose();
-        Environment.Exit(0);
+        System.Windows.Application.Current.Shutdown();
     }
 
     public void ShowBalloonTip(string tip, ToolTipIcon tipIcon = ToolTipIcon.Info)

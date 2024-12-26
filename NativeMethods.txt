@@ -2,6 +2,7 @@ ImmGetDefaultIMEWnd
 SendMessage
 GetKeyState
 ImmSetConversionStatus
+UnhookWinEvent
 
 WM_IME_CONTROL
 VIRTUAL_KEY

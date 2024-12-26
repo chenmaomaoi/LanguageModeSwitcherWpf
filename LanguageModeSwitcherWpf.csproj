@@ -6,6 +6,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<UseWPF>true</UseWPF>
+		<StartupObject>LanguageModeSwitcherWpf.App</StartupObject>
 	</PropertyGroup>
 
 	<ItemGroup>
