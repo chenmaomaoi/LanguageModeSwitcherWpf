@@ -67,7 +67,7 @@ public class Monitor : IDisposable
             return;
         }
 
-        //查询数据库
+        //模式变了，查询数据库
         var record = App.UnitWork.FirstOrDefault<ProgrennName_dto>(p => p.ProgressName == window.ProcessName);
 
         if (record == default)
@@ -91,7 +91,9 @@ public class Monitor : IDisposable
                 App.UnitWork.Save();
             }
         }
+
         _lastProgressName_TimeTicker = window.ProcessName;
+        _lastIsChineseMode_TimeTicker = currentIsChineseMode;
     }
 
     #region 监听应用程序切换

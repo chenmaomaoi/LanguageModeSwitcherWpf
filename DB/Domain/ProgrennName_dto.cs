@@ -17,6 +17,8 @@ public class ProgrennName_dto
 
     public FilterMode FilterMode { get; set; }
 
+    public bool KeepManual { get; set; }
+
     public bool IsChineseMode { get; set; }
 }
 
