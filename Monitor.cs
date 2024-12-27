@@ -3,14 +3,13 @@ using Windows.Win32.Foundation;
 using Windows.Win32.UI.Accessibility;
 using System.Diagnostics;
 using Microsoft.VisualBasic;
-using System.Timers;
-using System.Collections.Generic;
 using System;
 using System.Windows;
 using System.Threading;
 using System.Runtime.InteropServices;
-using Timer = System.Timers.Timer;
 using Walterlv.ForegroundWindowMonitor;
+using LanguageModeSwitcherWpf.DB.Domain;
+using System.Windows.Threading;
 
 namespace LanguageModeSwitcherWpf;
 
@@ -19,25 +18,20 @@ namespace LanguageModeSwitcherWpf;
 /// </summary>
 public class Monitor : IDisposable
 {
-    private Timer _refreshTimer;
-
-    //应用程序名，是否为中文模式
-    private Dictionary<string, bool> _dic = new Dictionary<string, bool>();
-
+    private DispatcherTimer _refreshTimer;
 
     private GCHandle _callBackHandle;
     private HWINEVENTHOOK _hWINEVENTHOOK = new();
 
     public Monitor()
     {
-        _refreshTimer = new Timer
+        _refreshTimer = new DispatcherTimer
         {
-            Interval = Constant.RefreshDelay
+            Interval = TimeSpan.FromMilliseconds(Constant.RefreshDelay)
         };
-        _refreshTimer.Elapsed += RefreshTimerTick;
-        _refreshTimer.Start();
-
+        _refreshTimer.Tick += RefreshTimerTick;
         StartMonitForegroundWindowChange();
+        _refreshTimer.Start();
     }
 
     public void Dispose()
@@ -55,7 +49,7 @@ public class Monitor : IDisposable
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void RefreshTimerTick(object? sender, ElapsedEventArgs e)
+    private void RefreshTimerTick(object? sender, EventArgs e)
     {
         //跟上次获取到的程序名称对比，不一样什么都不做
         Win32Window window = Win32Helper.GetForegroundWindowInfo();
@@ -65,24 +59,38 @@ public class Monitor : IDisposable
             return;
         }
 
-        var isChineseMode = Win32Helper.GetIsChineseInputMode(window.IMEHandle);
+        var currentIsChineseMode = Win32Helper.GetIsChineseInputMode(window.IMEHandle);
 
-        //输入模式没变，直接返回
-        if (_lastIsChineseMode_TimeTicker == isChineseMode)
+        //输入模式相比上次没变，直接返回
+        if (_lastIsChineseMode_TimeTicker == currentIsChineseMode)
         {
             return;
         }
 
-        //输入模式变了，存起来
-        if (_dic.TryGetValue(window.ProcessName, out bool storedIsChineseMode))
+        //查询数据库
+        var record = App.UnitWork.FirstOrDefault<ProgrennName_dto>(p => p.ProgressName == window.ProcessName);
+
+        if (record == default)
         {
-            _dic[window.ProcessName] = isChineseMode;
+            //库里没有，新增
+            record = new();
+            record.ProgressName = window.ProcessName;
+            record.IsChineseMode = currentIsChineseMode;
+
+            App.UnitWork.Add(record);
+            App.UnitWork.Save();
         }
         else
         {
-            _dic.Add(window.ProcessName, isChineseMode);
+            //库里有
+            if (record.IsChineseMode != currentIsChineseMode)
+            {
+                //与存的不符，改库
+                record.IsChineseMode = currentIsChineseMode;
+                App.UnitWork.Update(record);
+                App.UnitWork.Save();
+            }
         }
-
         _lastProgressName_TimeTicker = window.ProcessName;
     }
 
@@ -168,9 +176,11 @@ public class Monitor : IDisposable
         }
         bool currentIsChinese = Win32Helper.GetIsChineseInputMode(window2.IMEHandle);
 
-        if (_dic.TryGetValue(window2.ProcessName, out bool storedIsChinese))
+        var record = App.UnitWork.FirstOrDefault<ProgrennName_dto>(p => p.ProgressName == window2.ProcessName);
+
+        if (record != default)
         {
-            if (storedIsChinese)
+            if (record.IsChineseMode)
             {
                 Win32Helper.SwitchToChineseMode(window2.IMEHandle);
             }
@@ -182,7 +192,7 @@ public class Monitor : IDisposable
         _lastProgressName_ProcessChanged = window2.ProcessName;
 
 #if DEBUG
-        Debug.WriteLine($@"{DateAndTime.Now:HH:mm:ss.fff}-{window2.ProcessName}-{currentIsChinese}=>{storedIsChinese}");
+        Debug.WriteLine($@"{DateAndTime.Now:HH:mm:ss.fff}-{window2.ProcessName}-{currentIsChinese}=>{record?.IsChineseMode.ToString()}");
 #endif
     }
     #endregion

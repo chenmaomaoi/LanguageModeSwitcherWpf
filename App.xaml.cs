@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using LanguageModeSwitcherWpf.DB;
 
 namespace LanguageModeSwitcherWpf;
 
@@ -10,6 +11,8 @@ public partial class App : Application
 {
     private TaskBarNotifyIcon _notifyIcon;
     private Monitor _monitor;
+
+    public static UnitWork<DatabaseContext> UnitWork;
 
     public App()
     {
@@ -29,6 +32,8 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         #endregion
 #endif
+
+        UnitWork = new UnitWork<DatabaseContext>(new DatabaseContext());
     }
 
     private void Application_Startup(object sender, StartupEventArgs e)
