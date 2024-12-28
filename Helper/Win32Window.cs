@@ -3,11 +3,10 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
-using LanguageModeSwitcherWpf;
 using Windows.Win32.Foundation;
 using static Windows.Win32.PInvoke;
 
-namespace Walterlv.ForegroundWindowMonitor;
+namespace LanguageModeSwitcherWpf.Helper;
 public class Win32Window
 {
     private readonly HWND _hWnd;

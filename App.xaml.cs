@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows;
-using LanguageModeSwitcherWpf.DB;
+using LanguageModeSwitcherWpf.Models;
 
 namespace LanguageModeSwitcherWpf;
 

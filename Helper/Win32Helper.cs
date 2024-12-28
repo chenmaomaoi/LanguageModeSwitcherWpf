@@ -1,9 +1,8 @@
 ﻿using System;
-using Walterlv.ForegroundWindowMonitor;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
-namespace LanguageModeSwitcherWpf;
+namespace LanguageModeSwitcherWpf.Helper;
 
 public static class Win32Helper
 {
@@ -89,7 +88,7 @@ public static class Win32Helper
     private static LRESULT GetIMEConversionMode(HWND imeHWND)
     {
         if (imeHWND.IsNull || imeHWND.Value == 0) return (LRESULT)0;
-        return PInvoke.SendMessage(imeHWND, PInvoke.WM_IME_CONTROL, IMC_GETCONVERSIONMODE, IntPtr.Zero);
+        return PInvoke.SendMessage(imeHWND, PInvoke.WM_IME_CONTROL, IMC_GETCONVERSIONMODE, nint.Zero);
     }
 
     /// <summary>
@@ -99,7 +98,7 @@ public static class Win32Helper
     internal static HWND GetForegroundIMEHWND()
     {
         var foregroundWindow = PInvoke.GetForegroundWindow();
-        if (foregroundWindow == IntPtr.Zero) return HWND.Null;
+        if (foregroundWindow == nint.Zero) return HWND.Null;
 
         return GetIMEHWND(foregroundWindow);
     }
@@ -112,7 +111,7 @@ public static class Win32Helper
     internal static HWND GetIMEHWND(HWND windowHWND)
     {
         var hWND = PInvoke.ImmGetDefaultIMEWnd(windowHWND);
-        if (hWND == IntPtr.Zero) return HWND.Null;
+        if (hWND == nint.Zero) return HWND.Null;
         return hWND;
     }
 

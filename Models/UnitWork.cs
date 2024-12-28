@@ -3,7 +3,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace LanguageModeSwitcherWpf.DB;
+namespace LanguageModeSwitcherWpf.Models;
 
 public class UnitWork<U> where U : DatabaseContext
 {
@@ -59,11 +59,11 @@ public class UnitWork<U> where U : DatabaseContext
 
     public void Update<T>(T entity) where T : class
     {
-        var entry = this._context.Entry(entity);
+        var entry = _context.Entry(entity);
         entry.State = EntityState.Modified;
 
         //如果数据没有发生变化
-        if (!this._context.ChangeTracker.HasChanges())
+        if (!_context.ChangeTracker.HasChanges())
         {
             entry.State = EntityState.Unchanged;
         }

@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.ComponentModel;
 
 namespace LanguageModeSwitcherWpf;
 
@@ -21,9 +22,14 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+    private void Window_Closing(object sender, CancelEventArgs e)
     {
         e.Cancel = true;
         this.Hide();
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+        this.Close();
     }
 }

@@ -10,10 +10,10 @@ using System.Data.SQLite.EF6;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using LanguageModeSwitcherWpf.DB.Domain;
+using LanguageModeSwitcherWpf.Models.Domain;
 using SQLite.CodeFirst;
 
-namespace LanguageModeSwitcherWpf.DB;
+namespace LanguageModeSwitcherWpf.Models;
 
 public class SQLiteConfiguration : DbConfiguration, IDbConnectionFactory
 {
@@ -49,5 +49,5 @@ public class DatabaseContext : DbContext
     }
 
     //在此处添加实体
-    public virtual DbSet<ProgrennName_dto> Records { get; set; }
+    public virtual DbSet<Rules> Records { get; set; }
 }

@@ -7,9 +7,9 @@ using System;
 using System.Windows;
 using System.Threading;
 using System.Runtime.InteropServices;
-using Walterlv.ForegroundWindowMonitor;
-using LanguageModeSwitcherWpf.DB.Domain;
 using System.Windows.Threading;
+using LanguageModeSwitcherWpf.Helper;
+using LanguageModeSwitcherWpf.Models.Domain;
 
 namespace LanguageModeSwitcherWpf;
 
@@ -68,7 +68,7 @@ public class Monitor : IDisposable
         }
 
         //模式变了，查询数据库
-        var record = App.UnitWork.FirstOrDefault<ProgrennName_dto>(p => p.ProgressName == window.ProcessName);
+        var record = App.UnitWork.FirstOrDefault<Rules>(p => p.ProgressName == window.ProcessName);
 
         if (record == default)
         {
@@ -178,7 +178,7 @@ public class Monitor : IDisposable
         }
         bool currentIsChinese = Win32Helper.GetIsChineseInputMode(window2.IMEHandle);
 
-        var record = App.UnitWork.FirstOrDefault<ProgrennName_dto>(p => p.ProgressName == window2.ProcessName);
+        var record = App.UnitWork.FirstOrDefault<Rules>(p => p.ProgressName == window2.ProcessName);
 
         if (record != default)
         {
