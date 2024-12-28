@@ -1,6 +1,12 @@
 ﻿using System;
+using System.IO;
 using System.Windows;
 using LanguageModeSwitcherWpf.Models;
+using LanguageModeSwitcherWpf.View;
+using LanguageModeSwitcherWpf.ViewMode;
+using YamlDotNet.Core;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace LanguageModeSwitcherWpf;
 
@@ -13,6 +19,7 @@ public partial class App : Application
     private Monitor _monitor;
 
     public static UnitWork<DatabaseContext> UnitWork;
+    public static Models.Settings Settings;
 
     public App()
     {
@@ -34,6 +41,38 @@ public partial class App : Application
 #endif
 
         UnitWork = new UnitWork<DatabaseContext>(new DatabaseContext());
+
+        LoadSettings();
+    }
+
+    public static void LoadSettings()
+    {
+        if (File.Exists(Constant.SettingsFilePath))
+        {
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(PascalCaseNamingConvention.Instance).Build();
+            try
+            {
+                App.Settings = deserializer.Deserialize<Models.Settings>(File.ReadAllText(Constant.SettingsFilePath));
+                return;
+            }
+            catch (Exception)
+            {
+                File.Delete(Constant.SettingsFilePath);
+            }
+        }
+
+        App.Settings = new Models.Settings();
+        SaveSettings();
+    }
+
+    public static void SaveSettings()
+    {
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(PascalCaseNamingConvention.Instance).Build();
+        var yaml = serializer.Serialize(App.Settings);
+
+        File.WriteAllTextAsync(Constant.SettingsFilePath, yaml);
     }
 
     private void Application_Startup(object sender, StartupEventArgs e)

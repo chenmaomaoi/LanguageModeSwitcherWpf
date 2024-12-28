@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using LanguageModeSwitcherWpf.Common;
 
 namespace LanguageModeSwitcherWpf.Models.Domain;
 
@@ -15,7 +11,11 @@ public class Rules
     [Required]
     public string ProgressName { get; set; }
 
-    public bool IsChineseMode { get; set; }
+    
+    public MonitMode MonitMode { get; set; }
+
+
+    public IMECode IMECode { get; set; }
 
     /// <summary>
     /// 锁定

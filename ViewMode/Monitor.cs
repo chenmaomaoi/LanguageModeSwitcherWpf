@@ -10,8 +10,9 @@ using System.Runtime.InteropServices;
 using System.Windows.Threading;
 using LanguageModeSwitcherWpf.Helper;
 using LanguageModeSwitcherWpf.Models.Domain;
+using LanguageModeSwitcherWpf.Common;
 
-namespace LanguageModeSwitcherWpf;
+namespace LanguageModeSwitcherWpf.ViewMode;
 
 /// <summary>
 /// 监控器
@@ -43,7 +44,7 @@ public class Monitor : IDisposable
     }
 
     private string? _lastProgressName_TimeTicker;
-    private bool? _lastIsChineseMode_TimeTicker;
+    private IMECode _lastIMECode_TimeTicker;
     /// <summary>
     /// 定时获取输入法状态
     /// </summary>
@@ -59,15 +60,15 @@ public class Monitor : IDisposable
             return;
         }
 
-        var currentIsChineseMode = Win32Helper.GetIsChineseInputMode(window.IMEHandle);
+        var currentIMECode = Win32Helper.GetIMECode(window.IMEHandle);
 
-        //输入模式相比上次没变，直接返回
-        if (_lastIsChineseMode_TimeTicker == currentIsChineseMode)
+        //IMECode相比上次没变，直接返回
+        if (_lastIMECode_TimeTicker == currentIMECode)
         {
             return;
         }
 
-        //模式变了，查询数据库
+        //变了，查询数据库
         var record = App.UnitWork.FirstOrDefault<Rules>(p => p.ProgressName == window.ProcessName);
 
         if (record == default)
@@ -75,7 +76,7 @@ public class Monitor : IDisposable
             //库里没有，新增
             record = new();
             record.ProgressName = window.ProcessName;
-            record.IsChineseMode = currentIsChineseMode;
+            record.IMECode = currentIMECode;
 
             App.UnitWork.Add(record);
             App.UnitWork.Save();
@@ -83,17 +84,17 @@ public class Monitor : IDisposable
         else
         {
             //库里有
-            if (record.IsChineseMode != currentIsChineseMode)
+            if (record.IMECode != currentIMECode)
             {
                 //与存的不符，改库
-                record.IsChineseMode = currentIsChineseMode;
+                record.IMECode = currentIMECode;
                 App.UnitWork.Update(record);
                 App.UnitWork.Save();
             }
         }
 
         _lastProgressName_TimeTicker = window.ProcessName;
-        _lastIsChineseMode_TimeTicker = currentIsChineseMode;
+        _lastIMECode_TimeTicker = currentIMECode;
     }
 
     #region 监听应用程序切换
@@ -112,7 +113,7 @@ public class Monitor : IDisposable
             // 监听系统的前台窗口变化。
             _hWINEVENTHOOK = PInvoke.SetWinEventHook(PInvoke.EVENT_SYSTEM_FOREGROUND,
                                                      PInvoke.EVENT_SYSTEM_FOREGROUND,
-                                                     (HMODULE)IntPtr.Zero,
+                                                     (HMODULE)nint.Zero,
                                                      callBack,
                                                      0,
                                                      0,
@@ -129,7 +130,7 @@ public class Monitor : IDisposable
         {
             if (_hWINEVENTHOOK != 0)
             {
-                this.Dispose();
+                Dispose();
                 Application.Current.Shutdown();
             }
         }
@@ -176,25 +177,18 @@ public class Monitor : IDisposable
         {
             return;
         }
-        bool currentIsChinese = Win32Helper.GetIsChineseInputMode(window2.IMEHandle);
+        IMECode currentIMECode = Win32Helper.GetIMECode(window2.IMEHandle);
 
         var record = App.UnitWork.FirstOrDefault<Rules>(p => p.ProgressName == window2.ProcessName);
 
         if (record != default)
         {
-            if (record.IsChineseMode)
-            {
-                Win32Helper.SwitchToChineseMode(window2.IMEHandle);
-            }
-            else
-            {
-                Win32Helper.SwitchToAlphaNumericMode(window2.IMEHandle);
-            }
+            Win32Helper.SetIMECode(window2.IMEHandle, record.IMECode);
         }
         _lastProgressName_ProcessChanged = window2.ProcessName;
 
 #if DEBUG
-        Debug.WriteLine($@"{DateAndTime.Now:HH:mm:ss.fff}-{window2.ProcessName}-{currentIsChinese}=>{record?.IsChineseMode.ToString()}");
+        Debug.WriteLine($@"{DateAndTime.Now:HH:mm:ss.fff}-{window2.ProcessName}-{currentIMECode}=>{record?.IMECode.ToString()}");
 #endif
     }
     #endregion

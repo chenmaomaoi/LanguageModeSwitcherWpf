@@ -1,8 +1,12 @@
-﻿namespace LanguageModeSwitcherWpf;
+﻿using System;
+
+namespace LanguageModeSwitcherWpf;
 
 public static class Constant
 {
     public static readonly string Name = "输入法切换器";
+
+    public static readonly string SettingsFilePath = $@"{Environment.CurrentDirectory}/Settings.yaml";
 
     public static readonly int RefreshDelay = 300;
 

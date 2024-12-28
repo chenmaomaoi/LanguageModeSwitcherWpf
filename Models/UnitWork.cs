@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
+using Z.EntityFramework.Plus;
 
 namespace LanguageModeSwitcherWpf.Models;
 
@@ -67,6 +69,11 @@ public class UnitWork<U> where U : DatabaseContext
         {
             entry.State = EntityState.Unchanged;
         }
+    }
+
+    public void BulkUpdate<T>(List<T> entities) where T : class
+    {
+        _context.Set<T>().BulkUpdate(entities);
     }
 
     public void Delete<T>(T entity) where T : class

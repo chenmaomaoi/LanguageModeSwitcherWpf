@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Forms;
 
-namespace LanguageModeSwitcherWpf;
+namespace LanguageModeSwitcherWpf.View;
 
 public class TaskBarNotifyIcon
 {
