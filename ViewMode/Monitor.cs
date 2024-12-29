@@ -26,13 +26,16 @@ public class Monitor : IDisposable
 
     public Monitor()
     {
-        _refreshTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(App.Configs.NotifyIconConfig.RefreshDelay)
-        };
+        _refreshTimer = new();
+        UpdateInterval();
         _refreshTimer.Tick += RefreshTimerTick;
         StartMonitForegroundWindowChange();
         _refreshTimer.Start();
+    }
+
+    public void UpdateInterval()
+    {
+        _refreshTimer.Interval = TimeSpan.FromMilliseconds(App.Configs.RefreshDelay * 100);
     }
 
     public void Dispose()

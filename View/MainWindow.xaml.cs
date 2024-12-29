@@ -26,5 +26,5 @@ public partial class MainWindow : Window
     {
         e.Cancel = true;
         this.Hide();
-    }    
+    }
 }

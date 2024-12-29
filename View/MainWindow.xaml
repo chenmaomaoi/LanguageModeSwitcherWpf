@@ -42,37 +42,79 @@
                         <CheckBox Margin="2"
                                   Content="开机启动"
                                   IsChecked="{Binding IsStartUp}" />
-                        <CheckBox Margin="2"
-                                  Content="软件启动，删除没有被Lock的规则"
-                                  IsChecked="{Binding Configs.DeleteUnlockRules}" />
+                        <StackPanel Orientation="Horizontal">
+                            <Label VerticalAlignment="Center" Content="刷新IMECode时间间隔(*0.1s)" />
+                            <materialDesign:NumericUpDown Value="{Binding Configs.RefreshDelay}" />
+                        </StackPanel>
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="应用程序规则">
                     <Grid Margin="8">
-                        <DataGrid CanUserAddRows="False"
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <DataGrid x:Name="dataGrid"
+                                  Grid.Row="0"
+                                  CanUserAddRows="False"
                                   CanUserDeleteRows="True"
-                                  HeadersVisibility="All"
                                   ItemsSource="{Binding Rules}"
                                   SelectionUnit="FullRow">
                             <DataGrid.Columns />
                         </DataGrid>
+                        <StackPanel Grid.RowSpan="2"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Orientation="Horizontal">
+                            <Button Margin="0,0,8,0"
+                                    Background="{DynamicResource MaterialDesignTextFieldBoxBackground}"
+                                    Command="{Binding RemoveCommand}"
+                                    CommandParameter="{Binding ElementName=dataGrid}"
+                                    Style="{StaticResource MaterialDesignIconButton}"
+                                    ToolTip="删除">
+                                <materialDesign:PackIcon Foreground="Red" Kind="Delete" />
+                            </Button>
+                            <Button Margin="0,0,8,0"
+                                    Background="{DynamicResource MaterialDesignTextFieldBoxBackground}"
+                                    Command="{Binding AddCommand}"
+                                    CommandParameter="{Binding ElementName=dataGrid}"
+                                    Style="{StaticResource MaterialDesignIconButton}"
+                                    ToolTip="添加">
+                                <materialDesign:PackIcon Kind="Add" />
+                            </Button>
+                            <Button HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Panel.ZIndex="1"
+                                    Background="{DynamicResource MaterialDesignTextFieldBoxBackground}"
+                                    Command="{Binding RefreshCommand}"
+                                    CommandParameter="{Binding ElementName=dataGrid}"
+                                    Style="{StaticResource MaterialDesignIconButton}"
+                                    ToolTip="刷新">
+                                <materialDesign:PackIcon Kind="Refresh" />
+                            </Button>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+                            <CheckBox Margin="2"
+                                      Content="软件启动时，删除没有被Lock的规则"
+                                      IsChecked="{Binding Configs.DeleteUnlockRules}" />
+                        </StackPanel>
                     </Grid>
                 </TabItem>
             </TabControl>
-
             <!--#region 按钮： 保存取消-->
             <StackPanel Grid.Row="1"
-                        Margin="8,4,8,8"
+                        Margin="8,0,8,8"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Cursor=""
                         Orientation="Horizontal">
                 <Button Margin="4"
                         Command="{Binding SaveCommand}"
-                        CommandParameter="{Binding ElementName=window}">
+                        CommandParameter="{Binding ElementName=dataGrid}">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="ContentSaveCog" />
-                        <TextBlock Margin="4,0,0,0" Text="保存" />
+                        <materialDesign:PackIcon Kind="ContentSaveCheck" />
+                        <TextBlock Margin="4,0,0,0" Text="应用" />
                     </StackPanel>
                 </Button>
                 <Button Margin="4"
@@ -86,7 +128,6 @@
                 </Button>
             </StackPanel>
             <!--#endregion-->
-
         </Grid>
     </materialDesign:Card>
 </Window>

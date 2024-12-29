@@ -60,9 +60,4 @@ public class TaskBarNotifyIcon
         _notifyIcon.Dispose();
         System.Windows.Application.Current.Shutdown();
     }
-
-    public void ShowBalloonTip(string tip, ToolTipIcon tipIcon = ToolTipIcon.Info)
-    {
-        _notifyIcon.ShowBalloonTip(App.Configs.NotifyIconConfig.BalloonTipDelay, Configs.Name, tip, tipIcon);
-    }
 }

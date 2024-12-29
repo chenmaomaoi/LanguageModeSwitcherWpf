@@ -17,7 +17,7 @@ namespace LanguageModeSwitcherWpf;
 public partial class App : Application
 {
     private TaskBarNotifyIcon _notifyIcon;
-    private Monitor _monitor;
+    private static Monitor _monitor;
 
     public static UnitWork<UserDataContext> UnitWork;
     public static Configs Configs;
@@ -40,12 +40,16 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         #endregion
 #endif
-
         UnitWork = new UnitWork<UserDataContext>(new UserDataContext());
-
         LoadConfigs();
+    }
 
+    private void Application_Startup(object sender, StartupEventArgs e)
+    {
         DeleteUnlockrules();
+
+        _notifyIcon = new TaskBarNotifyIcon();
+        _monitor = new Monitor();
     }
 
     private void DeleteUnlockrules()
@@ -75,9 +79,10 @@ public partial class App : Application
             catch (Exception)
             {
                 File.Delete(Configs.ConfigFilePath);
-                App.Configs = new Configs();
             }
         }
+
+        App.Configs = new Configs();
     }
 
     public static void SaveConfigs()
@@ -87,12 +92,8 @@ public partial class App : Application
         var yaml = serializer.Serialize(App.Configs);
 
         File.WriteAllTextAsync(Configs.ConfigFilePath, yaml);
-    }
 
-    private void Application_Startup(object sender, StartupEventArgs e)
-    {
-        _notifyIcon = new TaskBarNotifyIcon();
-        _monitor = new Monitor();
+        _monitor.UpdateInterval();
     }
 
     protected override void OnExit(ExitEventArgs e)

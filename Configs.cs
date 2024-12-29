@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using LanguageModeSwitcherWpf.Common;
 
 namespace LanguageModeSwitcherWpf;
 
@@ -19,13 +14,6 @@ public class Configs
     /// </summary>
     public bool DeleteUnlockRules { get; set; } = true;
 
-    public NotifyIconConfig NotifyIconConfig { get; set; } = new NotifyIconConfig();
+    public int RefreshDelay { get; set; } = 2;
 }
 
-[Serializable]
-public class NotifyIconConfig
-{
-    public int RefreshDelay { get; set; } = 300;
-
-    public int BalloonTipDelay { get; set; } = 5;
-}
