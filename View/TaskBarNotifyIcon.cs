@@ -19,7 +19,7 @@ public class TaskBarNotifyIcon
         //设置托盘的各个属性
         _notifyIcon = new NotifyIcon
         {
-            Text = Constant.Name,
+            Text = Configs.Name,
             Icon = Resource.tq,
             Visible = true
         };
@@ -63,6 +63,6 @@ public class TaskBarNotifyIcon
 
     public void ShowBalloonTip(string tip, ToolTipIcon tipIcon = ToolTipIcon.Info)
     {
-        _notifyIcon.ShowBalloonTip(Constant.BalloonTipDelay, Constant.Name, tip, tipIcon);
+        _notifyIcon.ShowBalloonTip(App.Configs.NotifyIconConfig.BalloonTipDelay, Configs.Name, tip, tipIcon);
     }
 }

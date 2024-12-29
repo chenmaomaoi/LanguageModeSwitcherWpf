@@ -7,7 +7,6 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LanguageModeSwitcherWpf.Helper;
-using LanguageModeSwitcherWpf.Models;
 using LanguageModeSwitcherWpf.Models.Domain;
 
 namespace LanguageModeSwitcherWpf;
@@ -24,7 +23,7 @@ partial class MainViewMode : ObservableObject
     private List<Rules> _rules;
 
     [ObservableProperty]
-    private Settings _settings;
+    private Configs _configs;
 
     [RelayCommand]
     private void VisiblityChanged(Visibility visibility)
@@ -33,10 +32,11 @@ partial class MainViewMode : ObservableObject
         if (visibility == Visibility.Visible)
         {
             IsStartUp = ShortcutUtilities.IsStartup();
-            Rules = App.UnitWork.Find<Rules>().ToList();
-            App.LoadSettings();
 
-            Settings = App.Settings;
+            Rules = App.UnitWork.Find<Rules>().OrderBy(p => p.Id).ThenBy(p => p.Lock).ToList();
+
+            App.LoadConfigs();
+            Configs = App.Configs;
         }
     }
 
@@ -44,18 +44,17 @@ partial class MainViewMode : ObservableObject
     /// 保存设置
     /// </summary>
     [RelayCommand]
-    private void Save()
+    private void Save(Window window)
     {
-        App.Settings = Settings;
-
+        App.Configs = Configs;
         App.UnitWork.BulkUpdate(Rules);
-
-        App.SaveSettings();
+        App.SaveConfigs();
+        window.Close();
     }
 
     [RelayCommand]
-    private void Cancel()
+    private void Cancel(Window window)
     {
-
+        window.Close();
     }
 }

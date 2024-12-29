@@ -7,7 +7,7 @@ using Z.EntityFramework.Plus;
 
 namespace LanguageModeSwitcherWpf.Models;
 
-public class UnitWork<U> where U : DatabaseContext
+public class UnitWork<U> where U : UserDataContext
 {
     private U _context;
 
@@ -79,6 +79,10 @@ public class UnitWork<U> where U : DatabaseContext
     public void Delete<T>(T entity) where T : class
     {
         _context.Set<T>().Remove(entity);
+    }
+    public void BulkDelete<T>(IEnumerable<T> entity) where T : class
+    {
+        _context.Set<T>().RemoveRange(entity);
     }
 
     public void Save()

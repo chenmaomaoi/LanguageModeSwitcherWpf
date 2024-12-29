@@ -28,7 +28,7 @@ public class Monitor : IDisposable
     {
         _refreshTimer = new DispatcherTimer
         {
-            Interval = TimeSpan.FromMilliseconds(Constant.RefreshDelay)
+            Interval = TimeSpan.FromMilliseconds(App.Configs.NotifyIconConfig.RefreshDelay)
         };
         _refreshTimer.Tick += RefreshTimerTick;
         StartMonitForegroundWindowChange();
@@ -73,18 +73,28 @@ public class Monitor : IDisposable
 
         if (record == default)
         {
-            //库里没有，新增
-            record = new();
-            record.ProgressName = window.ProcessName;
-            record.IMECode = currentIMECode;
+            //库里没有
+            //看默认设置
+            var defaultRule = App.UnitWork.FirstOrDefault<Rules>(p => p.Id == 1);
+            if (defaultRule.MonitIMECodeChanges)
+            {
+                //按默认设置新增
+                record = new()
+                {
+                    ProgressName = window.ProcessName,
+                    MonitIMECodeChanges = defaultRule.MonitIMECodeChanges,
+                    IMECode = currentIMECode,
+                    Lock = defaultRule.Lock
+                };
 
-            App.UnitWork.Add(record);
-            App.UnitWork.Save();
+                App.UnitWork.Add(record);
+                App.UnitWork.Save();
+            }
         }
         else
         {
             //库里有
-            if (record.IMECode != currentIMECode)
+            if (record.MonitIMECodeChanges && record.IMECode != currentIMECode)
             {
                 //与存的不符，改库
                 record.IMECode = currentIMECode;
@@ -181,7 +191,7 @@ public class Monitor : IDisposable
 
         var record = App.UnitWork.FirstOrDefault<Rules>(p => p.ProgressName == window2.ProcessName);
 
-        if (record != default)
+        if (record != default && record.IMECode != IMECode.Ignore)
         {
             Win32Helper.SetIMECode(window2.IMEHandle, record.IMECode);
         }

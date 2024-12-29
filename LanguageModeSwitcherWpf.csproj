@@ -28,6 +28,7 @@
 	<ItemGroup>
 		<PackageReference Include="CalcBinding" Version="2.5.2" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="EntityFramework" Version="6.5.1" />
 		<PackageReference Include="MaterialDesignThemes" Version="5.1.0" />
 		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.106">
 			<PrivateAssets>all</PrivateAssets>

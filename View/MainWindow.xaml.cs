@@ -26,10 +26,5 @@ public partial class MainWindow : Window
     {
         e.Cancel = true;
         this.Hide();
-    }
-
-    private void Button_Click(object sender, RoutedEventArgs e)
-    {
-        this.Close();
-    }
+    }    
 }

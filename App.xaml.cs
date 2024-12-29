@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using LanguageModeSwitcherWpf.Models;
+using LanguageModeSwitcherWpf.Models.Domain;
 using LanguageModeSwitcherWpf.View;
 using LanguageModeSwitcherWpf.ViewMode;
-using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -18,8 +19,8 @@ public partial class App : Application
     private TaskBarNotifyIcon _notifyIcon;
     private Monitor _monitor;
 
-    public static UnitWork<DatabaseContext> UnitWork;
-    public static Models.Settings Settings;
+    public static UnitWork<UserDataContext> UnitWork;
+    public static Configs Configs;
 
     public App()
     {
@@ -40,39 +41,52 @@ public partial class App : Application
         #endregion
 #endif
 
-        UnitWork = new UnitWork<DatabaseContext>(new DatabaseContext());
+        UnitWork = new UnitWork<UserDataContext>(new UserDataContext());
 
-        LoadSettings();
+        LoadConfigs();
+
+        DeleteUnlockrules();
     }
 
-    public static void LoadSettings()
+    private void DeleteUnlockrules()
     {
-        if (File.Exists(Constant.SettingsFilePath))
+        if (Configs.DeleteUnlockRules)
+        {
+            var deleteEntyties = UnitWork.Finds<Rules>(p => p.Lock == false && p.Id != 1).ToList();
+            if (deleteEntyties.Count() > 0)
+            {
+                UnitWork.BulkDelete(deleteEntyties);
+                UnitWork.Save();
+            }
+        }
+    }
+
+    public static void LoadConfigs()
+    {
+        if (File.Exists(Configs.ConfigFilePath))
         {
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(PascalCaseNamingConvention.Instance).Build();
             try
             {
-                App.Settings = deserializer.Deserialize<Models.Settings>(File.ReadAllText(Constant.SettingsFilePath));
+                App.Configs = deserializer.Deserialize<Configs>(File.ReadAllText(Configs.ConfigFilePath));
                 return;
             }
             catch (Exception)
             {
-                File.Delete(Constant.SettingsFilePath);
+                File.Delete(Configs.ConfigFilePath);
+                App.Configs = new Configs();
             }
         }
-
-        App.Settings = new Models.Settings();
-        SaveSettings();
     }
 
-    public static void SaveSettings()
+    public static void SaveConfigs()
     {
         var serializer = new SerializerBuilder()
             .WithNamingConvention(PascalCaseNamingConvention.Instance).Build();
-        var yaml = serializer.Serialize(App.Settings);
+        var yaml = serializer.Serialize(App.Configs);
 
-        File.WriteAllTextAsync(Constant.SettingsFilePath, yaml);
+        File.WriteAllTextAsync(Configs.ConfigFilePath, yaml);
     }
 
     private void Application_Startup(object sender, StartupEventArgs e)

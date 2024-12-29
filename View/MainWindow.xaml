@@ -4,13 +4,14 @@
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:c="clr-namespace:CalcBinding;assembly=CalcBinding"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:domain="clr-namespace:LanguageModeSwitcherWpf.View"
         xmlns:local="clr-namespace:LanguageModeSwitcherWpf"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         x:Name="window"
         Title="设置"
-        Width="600"
-        Height="300"
+        Width="650"
+        Height="400"
         MinWidth="300"
         MinHeight="200"
         Closing="Window_Closing"
@@ -26,92 +27,66 @@
             <b:InvokeCommandAction Command="{Binding VisiblityChangedCommand}" CommandParameter="{Binding ElementName=window, Path=Visibility}" />
         </b:PropertyChangedTrigger>
     </b:Interaction.Triggers>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="1*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <TabControl Grid.Row="0" HorizontalContentAlignment="Left">
-            <TabItem Header="基本">
-                <StackPanel Margin="8"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Top"
-                            Orientation="Vertical">
-                    <CheckBox Margin="2"
-                              Content="开机启动"
-                              IsChecked="{Binding IsStartUp}" />
+    <materialDesign:Card>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TabControl Grid.Row="0" HorizontalContentAlignment="Left">
+                <TabItem Header="基本">
+                    <StackPanel Margin="8"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Orientation="Vertical">
+                        <CheckBox Margin="2"
+                                  Content="开机启动"
+                                  IsChecked="{Binding IsStartUp}" />
+                        <CheckBox Margin="2"
+                                  Content="软件启动，删除没有被Lock的规则"
+                                  IsChecked="{Binding Configs.DeleteUnlockRules}" />
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="应用程序规则">
+                    <Grid Margin="8">
+                        <DataGrid CanUserAddRows="False"
+                                  CanUserDeleteRows="True"
+                                  HeadersVisibility="All"
+                                  ItemsSource="{Binding Rules}"
+                                  SelectionUnit="FullRow">
+                            <DataGrid.Columns />
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
 
-                    <CheckBox x:Name="isStartMonitor"
-                              Margin="2"
-                              Content="记录应用程序规则"
-                              IsChecked="{Binding Settings.StartMonitor}" />
-                    <materialDesign:Card IsEnabled="{Binding ElementName=isStartMonitor, Path=IsChecked}">
-                        <StackPanel>
-                            <RadioButton Margin="2"
-                                         Content="写入内存，重启程序时删除"
-                                         IsChecked="{c:Binding ElementName=configSaveToDB,
-                                                               Path=!IsChecked}" />
-                            <RadioButton x:Name="configSaveToDB"
-                                         Margin="2"
-                                         Content="写入数据库，永久保存，直到手动删除"
-                                         IsChecked="{Binding Settings.MonitConfigSaveToDB}" />
-                        </StackPanel>
-                    </materialDesign:Card>
-                </StackPanel>
-            </TabItem>
-            <TabItem Header="应用程序规则">
-                <Grid Margin="8">
-                    <DataGrid materialDesign:DataGridAssist.SelectedCellBorderBrush="Crimson"
-                              CanUserAddRows="False"
-                              CanUserDeleteRows="True"
-                              HeadersVisibility="All"
-                              ItemsSource="{Binding Rules}"
-                              SelectionUnit="FullRow">
-                        <DataGrid.Columns>
-                            <DataGridTemplateColumn>
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Button Content="删除" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+            <!--#region 按钮： 保存取消-->
+            <StackPanel Grid.Row="1"
+                        Margin="8,4,8,8"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Cursor=""
+                        Orientation="Horizontal">
+                <Button Margin="4"
+                        Command="{Binding SaveCommand}"
+                        CommandParameter="{Binding ElementName=window}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ContentSaveCog" />
+                        <TextBlock Margin="4,0,0,0" Text="保存" />
+                    </StackPanel>
+                </Button>
+                <Button Margin="4"
+                        Background="Crimson"
+                        Command="{Binding CancelCommand}"
+                        CommandParameter="{Binding ElementName=window}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="CloseThick" />
+                        <TextBlock Margin="4,0,0,0" Text="取消" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <!--#endregion-->
 
-                        </DataGrid.Columns>
-
-                    </DataGrid>
-
-                </Grid>
-            </TabItem>
-        </TabControl>
-
-        <!--#region 按钮： 保存取消-->
-        <StackPanel Grid.Row="1"
-                    Margin="8,4,8,8"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Orientation="Horizontal"
-                    Cursor="">
-            <Button Margin="4"
-                    Click="Button_Click"
-                    Command="{Binding SaveCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="ContentSaveCog" />
-                    <TextBlock Margin="4,0,0,0" Text="保存" />
-                </StackPanel>
-            </Button>
-            <Button Margin="4"
-                    Background="Crimson"
-                    Click="Button_Click"
-                    Command="{Binding CancelCommand}">
-                <StackPanel Orientation="Horizontal">
-                    <materialDesign:PackIcon Kind="CloseThick" />
-                    <TextBlock Margin="4,0,0,0" Text="取消" />
-                </StackPanel>
-            </Button>
-        </StackPanel>
-        <!--#endregion-->
-
-    </Grid>
+        </Grid>
+    </materialDesign:Card>
 </Window>
