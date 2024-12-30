@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LanguageModeSwitcherWpf.Helper;
@@ -30,14 +29,6 @@ partial class MainViewMode : ObservableObject
     [ObservableProperty]
     private Configs _configs;
 
-    private IMapper _mapper;
-
-    public MainViewMode()
-    {
-        var config = new MapperConfiguration(cfg => cfg.CreateMap<Rules, Rules>());
-        _mapper = config.CreateMapper();
-    }
-
     [RelayCommand]
     private void VisiblityChanged(Visibility visibility)
     {
@@ -45,8 +36,7 @@ partial class MainViewMode : ObservableObject
         {
             IsStartUp = ShortcutUtilities.IsStartup();
 
-            var rules = App.UnitWork.Find<Rules>().OrderBy(p => p.Id).ThenBy(p => p.Lock).ToList();
-            Rules = _mapper.Map<List<Rules>>(rules);
+            Rules = App.UnitWork.Find<Rules>().OrderBy(p => p.Id).ThenBy(p => p.Lock).ToList();
 
             App.LoadConfigs();
             Configs = App.Configs;
@@ -73,13 +63,20 @@ partial class MainViewMode : ObservableObject
 
         foreach (Rules item in Rules)
         {
-            if (item.Id == 0 && !string.IsNullOrEmpty(item.ProgressName))
+            if (item.Id == 0)
             {
-                App.UnitWork.Add(item);
+                if (!string.IsNullOrWhiteSpace(item.ProgressName))
+                {
+                    App.UnitWork.Add(item);
+                    continue;
+                }
+            }
+            else
+            {
+                App.UnitWork.Update(item);
             }
         }
 
-        App.UnitWork.BulkUpdate(Rules);
         App.UnitWork.Save();
 
         App.SaveConfigs();
@@ -94,6 +91,8 @@ partial class MainViewMode : ObservableObject
         }
 
         MessageBox.Show("OK");
+
+        Refresh(dataGrid);
     }
 
     [RelayCommand]
@@ -124,8 +123,8 @@ partial class MainViewMode : ObservableObject
     [RelayCommand]
     private void Refresh(DataGrid dataGrid)
     {
-        var rules = App.UnitWork.Find<Rules>().OrderBy(p => p.Id).ThenBy(p => p.Lock).ToList();
-        Rules = _mapper.Map<List<Rules>>(rules);
+        Rules = App.UnitWork.Find<Rules>().OrderBy(p => p.Id).ThenBy(p => p.Lock).ToList();
+
         Application.Current.Dispatcher.Invoke(dataGrid.Items.Refresh);
     }
 }
