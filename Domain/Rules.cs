@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using LanguageModeSwitcherWpf.Common;
 
-namespace LanguageModeSwitcherWpf.Models.Domain;
+namespace LanguageModeSwitcherWpf.Domain;
 
 [Table(nameof(Rules))]
 public class Rules
@@ -17,7 +17,7 @@ public class Rules
     public string ProgressName { get; set; }
 
     [Description("监视IME代码变更")]
-    public bool MonitIMECodeChanges {  get; set; }
+    public bool MonitIMECodeChanges { get; set; }
 
     [Description("IME代码")]
     public IMECode IMECode { get; set; }

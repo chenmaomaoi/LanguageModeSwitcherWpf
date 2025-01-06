@@ -5,7 +5,7 @@ using System.Data.Entity.Infrastructure;
 using System.Data.SQLite;
 using System.Data.SQLite.EF6;
 
-namespace LanguageModeSwitcherWpf.Models;
+namespace LanguageModeSwitcherWpf.Domain;
 
 public class SQLiteConfiguration : DbConfiguration, IDbConnectionFactory
 {

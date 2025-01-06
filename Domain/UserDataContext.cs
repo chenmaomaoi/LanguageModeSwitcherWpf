@@ -1,8 +1,6 @@
 ﻿using System.Data.Entity;
-using LanguageModeSwitcherWpf.Models.Domain;
-using SQLite.CodeFirst;
 
-namespace LanguageModeSwitcherWpf.Models;
+namespace LanguageModeSwitcherWpf.Domain;
 
 [DbConfigurationType(typeof(SQLiteConfiguration))]
 public class UserDataContext : DbContext

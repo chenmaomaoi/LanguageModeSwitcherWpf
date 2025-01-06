@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Z.EntityFramework.Plus;
 
-namespace LanguageModeSwitcherWpf.Models;
+namespace LanguageModeSwitcherWpf.Domain;
 
 public class UnitWork<U> where U : UserDataContext
 {

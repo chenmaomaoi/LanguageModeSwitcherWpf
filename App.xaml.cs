@@ -2,10 +2,13 @@
 using System.IO;
 using System.Linq;
 using System.Windows;
-using LanguageModeSwitcherWpf.Models;
-using LanguageModeSwitcherWpf.Models.Domain;
-using LanguageModeSwitcherWpf.View;
+using System.Windows.Threading;
+using LanguageModeSwitcherWpf.Domain;
+using LanguageModeSwitcherWpf.Extensions;
+using LanguageModeSwitcherWpf.Services;
 using LanguageModeSwitcherWpf.ViewMode;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -22,28 +25,64 @@ public partial class App : Application
     public static UnitWork<UserDataContext> UnitWork;
     public static Configs Configs;
 
+    private readonly IHost host;
+
     public App()
     {
-#if !DEBUG
-        #region 检查是否已经运行
-        string strProcessName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-
-        //检查进程是否已经启动，已经启动则显示报错信息退出程序。 
-        if (System.Diagnostics.Process.GetProcessesByName(strProcessName).Length > 1)
+        //检查是否已经在运行
+        if (IsRuned())
         {
-            MessageBox.Show("程序已经在运行！", "消息", MessageBoxButton.OK, MessageBoxImage.Exclamation);
             Environment.Exit(0);
-            return;
         }
 
+#if !DEBUG
         //绑定错误捕获
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        #endregion
+        DispatcherUnhandledException += App_DispatcherUnhandledException;
 #endif
+
+        var builder = Host.CreateDefaultBuilder();
+        builder.ConfigureServices(services =>
+        {
+            services.RegisterAllServices();
+        });
+
         UnitWork = new UnitWork<UserDataContext>(new UserDataContext());
         LoadConfigs();
     }
 
+    #region 获取当前程序是否已运行
+    /// <summary>
+    /// 获取当前程序是否已运行
+    /// </summary>
+    private bool IsRuned()
+    {
+        string strProcessName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+        bool result = System.Diagnostics.Process.GetProcessesByName(strProcessName).Length > 1;
+#if DEBUG
+        result = false;
+#endif
+        return result;
+    }
+    #endregion
+
+    #region 全局错误处理
+    /// <summary>
+    /// 全局错误处理
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        //todo 记录日志
+        MessageBox.Show(e.Exception.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+    #endregion
+
+    /// <summary>
+    /// 启动入口
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void Application_Startup(object sender, StartupEventArgs e)
     {
         DeleteUnlockrules();
@@ -100,10 +139,5 @@ public partial class App : Application
     {
         _monitor.Dispose();
         base.OnExit(e);
-    }
-
-    private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-    {
-        MessageBox.Show(e.ExceptionObject.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 }

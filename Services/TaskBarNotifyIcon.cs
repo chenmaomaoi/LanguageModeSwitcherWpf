@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
+using Microsoft.Extensions.Hosting;
 
-namespace LanguageModeSwitcherWpf.View;
+namespace LanguageModeSwitcherWpf.Services;
 
-public class TaskBarNotifyIcon
+public class TaskBarNotifyIcon : IHostedService
 {
     //通知栏图标
     private NotifyIcon _notifyIcon;
@@ -36,6 +39,16 @@ public class TaskBarNotifyIcon
         menuContext.Items.Add("退出", null, notifyIcon_exit);
 
         _notifyIcon.ContextMenuStrip = menuContext;
+    }
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 
     private void _notifyIcon_MouseClick(object? sender, MouseEventArgs e)

@@ -10,8 +10,8 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LanguageModeSwitcherWpf.Domain;
 using LanguageModeSwitcherWpf.Helper;
-using LanguageModeSwitcherWpf.Models.Domain;
 
 namespace LanguageModeSwitcherWpf;
 

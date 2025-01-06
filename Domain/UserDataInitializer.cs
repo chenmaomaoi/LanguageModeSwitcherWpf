@@ -1,8 +1,7 @@
 ﻿using System.Data.Entity;
-using LanguageModeSwitcherWpf.Models.Domain;
 using SQLite.CodeFirst;
 
-namespace LanguageModeSwitcherWpf.Models;
+namespace LanguageModeSwitcherWpf.Domain;
 
 public class UserDataInitializer : SqliteDropCreateDatabaseWhenModelChanges<UserDataContext>
 {

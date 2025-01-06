@@ -9,8 +9,8 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 using LanguageModeSwitcherWpf.Helper;
-using LanguageModeSwitcherWpf.Models.Domain;
 using LanguageModeSwitcherWpf.Common;
+using LanguageModeSwitcherWpf.Domain;
 
 namespace LanguageModeSwitcherWpf.ViewMode;
 
